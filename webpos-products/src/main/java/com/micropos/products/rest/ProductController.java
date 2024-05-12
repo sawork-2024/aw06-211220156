@@ -1,10 +1,12 @@
 package com.micropos.products.rest;
 
+import com.micropos.products.dto.ProductDTO;
 import com.micropos.products.model.Category;
 import com.micropos.products.model.Product;
 import com.micropos.products.model.ProductUpdateRequest;
 import com.micropos.products.model.Settings;
 import com.micropos.products.biz.ProductService;
+import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -12,15 +14,14 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @RestController
-//@CrossOrigin("*")
 public class ProductController {
+    @Autowired
+    private ModelMapper modelMapper;
 
     private ProductService productService;
-
-//    @Autowired
-//    private CacheManager cacheManager;
 
     @Autowired
     public void setProductService(ProductService productService) {
@@ -42,18 +43,20 @@ public class ProductController {
         return new ResponseEntity<>(categories, HttpStatus.OK);
     }
     @GetMapping("/products")
-    public ResponseEntity<List<Product>> listProducts() {
-        return new ResponseEntity<>(productService.products(), HttpStatus.OK);
+    public ResponseEntity<List<ProductDTO>> listProducts() {
+        return new ResponseEntity<>(
+                productService.products().stream().map(product -> modelMapper.map(product, ProductDTO.class)).collect(Collectors.toList()),
+                HttpStatus.OK);
     }
 
     @GetMapping("/products/{productId}")
-    public ResponseEntity<Product> getProduct(@PathVariable String productId) {
+    public ResponseEntity<ProductDTO> getProduct(@PathVariable String productId) {
         System.out.println("in get product by id");
         Product product = productService.getProductById(productId);
         if (product == null) {
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         }
-        return new ResponseEntity<>(product, HttpStatus.OK);
+        return new ResponseEntity<>(modelMapper.map(product, ProductDTO.class), HttpStatus.OK);
     }
 
     @PatchMapping("/products/{productId}")
@@ -68,35 +71,5 @@ public class ProductController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Failed to update data: " + e.getMessage());
         }
     }
-    @PostMapping("/products/{productId}")
-    public ResponseEntity<String> postProduct(@PathVariable String productId, @RequestParam("quantity") int quantity) {
-        System.out.println("in postProduct");
-        try {
-            System.out.println(productId);
-            System.out.println(quantity);
-            productService.updateProduct(productId, quantity);
-            return ResponseEntity.ok("Data updated!");
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Failed to update data: " + e.getMessage());
-        }
-    }
-
-//    @ResponseBody
-//    @RequestMapping(value = {"/products/{productId}"}, method = RequestMethod.OPTIONS)
-//    public String options(HttpServletResponse resp, HttpServletRequest request){
-//        System.out.println("in options method!");
-//        setCORS(resp,request);
-//        return "success";
-////        return ResponseEntity.ok().allow(HttpMethod.GET, HttpMethod.POST, HttpMethod.PATCH, HttpMethod.OPTIONS).build();
-//
-//    }
-
-//    private void setCORS(HttpServletResponse resp,HttpServletRequest request){
-//        resp.setStatus(200);
-//        resp.setHeader("Access-Control-Allow-Origin", request.getHeader("Origin"));
-//        resp.setHeader("Access-Control-Allow-Methods", "POST, GET, OPTIONS, DELETE, PUT");
-//        resp.setHeader("Access-Control-Allow-Headers", "content-type");
-//    }
-
 
 }
