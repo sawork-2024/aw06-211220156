@@ -2,10 +2,7 @@ package com.micropos.products.rest;
 
 
 import com.micropos.api.dto.ProductDTO;
-import com.micropos.products.model.Category;
-import com.micropos.products.model.Product;
-import com.micropos.products.model.ProductUpdateRequest;
-import com.micropos.products.model.Settings;
+import com.micropos.products.model.*;
 import com.micropos.products.biz.ProductService;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -68,26 +65,39 @@ public class ProductController {
         return new ResponseEntity<>(modelMapper.map(product, ProductDTO.class), HttpStatus.OK);
     }
 
-    @PatchMapping("/products/{productId}")
-    public ResponseEntity<String> patchProduct(@PathVariable String productId, @RequestBody ProductUpdateRequest request) {
-        System.out.println("in patchProduct");
+//    @PatchMapping("/products/{productId}")
+//    public ResponseEntity<String> patchProduct(@PathVariable String productId, @RequestBody ProductUpdateRequest request) {
+//        System.out.println("in patchProduct");
+//        try {
+//            System.out.println(productId);
+//            System.out.println(request.getQuantity());
+//            productService.updateProduct(productId, request.getQuantity());
+////
+////            //创建订单
+////            // 设置请求头
+////            HttpHeaders headers = new HttpHeaders();
+////            headers.setContentType(MediaType.APPLICATION_JSON);
+////
+////            // 设置请求体
+////            HttpEntity<List<ProductDTO>> requestEntity = new HttpEntity<>(products, headers);
+////            String ret = restTemplate.postForObject("http://localhost:8083/createOrder", )
+//            return ResponseEntity.ok("Data updated!");
+//        } catch (Exception e) {
+//            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Failed to update data: " + e.getMessage());
+//        }
+//    }
+
+    @PatchMapping("/products/charge")
+    public ResponseEntity<String> charge(@RequestBody ChargeRequest request) {
+        System.out.println("in charge!");
         try {
-            System.out.println(productId);
-            System.out.println(request.getQuantity());
-            productService.updateProduct(productId, request.getQuantity());
-//
-//            //创建订单
-//            // 设置请求头
-//            HttpHeaders headers = new HttpHeaders();
-//            headers.setContentType(MediaType.APPLICATION_JSON);
-//
-//            // 设置请求体
-//            HttpEntity<List<ProductDTO>> requestEntity = new HttpEntity<>(products, headers);
-//            String ret = restTemplate.postForObject("http://localhost:8083/createOrder", )
-            return ResponseEntity.ok("Data updated!");
+            for (ProductUpdateRequest p : request.getPur()) {
+                System.out.println(p.getProductId() + " " + p.getQuantity());
+            }
+            request.getPur().forEach(productUpdateRequest -> productService.updateProduct(productUpdateRequest.getProductId(), productUpdateRequest.getQuantity()));
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Failed to update data: " + e.getMessage());
         }
+        return ResponseEntity.ok("Data updated!");
     }
-
 }

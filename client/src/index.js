@@ -507,35 +507,37 @@ $(document).ready(function () {
             user: 'admin',
             user_id: '001'
         }
+        var requestData = {pur:[]};
         for (let i = 0; i < cart.length; i++) {
-            console.log(cart[i]);
-            // $.ajax({
-            //     url: json_api + 'products/' + cart[i].id,
-            //     // dataType: "json",
-            //     contentType: "application/x-www-form-urlencoded", // 修改为简单请求允许的 Content-Type
-            //     data: { quantity: cart[i].max_quantity - cart[i].quantity }, // 不再需要 JSON.stringify
-            //     type: "POST", // 修改为简单请求允许的请求类型
-            //     success: function (data) {
-            //         console.log("Data updated!");
-            //     },
-            //     error: function (data) {
-            //         console.log("failed");
-            //     }
-            // });
-            $.ajax({
-                url: json_api + 'products/' + cart[i].id,
-                // dataType: "json",
-                contentType: "application/json",
-                data: JSON.stringify({ quantity: cart[i].max_quantity - cart[i].quantity }),
-                type: "PATCH",
-                success: function (data) {
-                    console.log("Data updated!");
-                },
-                error: function (data) {
-                    console.log("failed");
-                }
-            })
+            requestData.pur.push({ productId: cart[i].id, quantity: cart[i].max_quantity - cart[i].quantity });
         }
+        $.ajax({
+            url: json_api + 'products/charge',
+            contentType: "application/json",
+            data: JSON.stringify(requestData),
+            type: "PATCH",
+            success: function (data) {
+                console.log("Data updated!");
+            },
+            error: function (data) {
+                console.log("failed");
+            }
+        });
+        // for (let i = 0; i < cart.length; i++) {
+        //     console.log(cart[i]);
+        //     $.ajax({
+        //         url: json_api + 'products/' + cart[i].id,
+        //         contentType: "application/json",
+        //         data: JSON.stringify({ quantity: cart[i].max_quantity - cart[i].quantity }),
+        //         type: "PATCH",
+        //         success: function (data) {
+        //             console.log("Data updated!");
+        //         },
+        //         error: function (data) {
+        //             console.log("failed");
+        //         }
+        //     })
+        // }
 
         cart = [];
         $('#viewTransaction').html('');
