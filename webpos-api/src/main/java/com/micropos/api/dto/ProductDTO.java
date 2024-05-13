@@ -1,4 +1,5 @@
-package com.micropos.products.dto;
+package com.micropos.api.dto;
+
 
 import lombok.*;
 

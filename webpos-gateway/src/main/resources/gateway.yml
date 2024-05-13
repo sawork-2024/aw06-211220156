@@ -52,6 +52,34 @@ spring:
                 - OPTIONS
               allowedHeaders: '*'
               maxAge: 30
+        - id: Orders
+          uri: http://localhost:8083
+          predicates:
+            - Path=/orders
+          metadata:
+            cors:
+              allowedOrigins: '*'
+              allowedMethods:
+                - GET
+                - POST
+                - PATCH
+                - OPTIONS
+              allowedHeaders: '*'
+              maxAge: 30
+        - id: OrderItems
+          uri: http://localhost:8083
+          predicates:
+            - Path=/orderItems
+          metadata:
+            cors:
+              allowedOrigins: '*'
+              allowedMethods:
+                - GET
+                - POST
+                - PATCH
+                - OPTIONS
+              allowedHeaders: '*'
+              maxAge: 30
 #        - id: ipv6
 #          uri: http://[::1]:8082
 

@@ -8,7 +8,6 @@ public interface ProductDB {
 
     public List<Product> getProducts();
 
-
     public Product getProduct(String productId);
 
     List<Product> getProductsByKeyword(String keyword);
