@@ -18,7 +18,7 @@ public class OrderServiceImp implements OrderService {
         return orderDB.getOrders();
     }
     @Override
-    public String createOrder() {
-        return orderDB.createOrder();
+    public String createOrder(Order order) {
+        return orderDB.createOrder(order);
     }
 }

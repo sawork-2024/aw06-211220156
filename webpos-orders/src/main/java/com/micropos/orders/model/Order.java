@@ -24,8 +24,8 @@ public class Order {
     @Column(name = "id")
     private String id;
 
-    @Column(name = "userId")
-    private String userId;
+    @Column(name = "uid")
+    private String uid;
 
     @Column(name = "amount")
     private double amount;

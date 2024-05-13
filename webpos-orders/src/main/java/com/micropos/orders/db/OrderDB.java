@@ -6,5 +6,6 @@ import java.util.List;
 
 public interface OrderDB {
     List<Order> getOrders();
-    String createOrder();
+    String createOrder(Order order);
+
 }

@@ -7,6 +7,6 @@ import java.util.List;
 public interface OrderService {
     List<Order> orders();
 
-    String createOrder();
+    String createOrder(Order order);
 
 }

@@ -1,6 +1,8 @@
 package com.micropos.products.rest;
 
 
+import com.micropos.api.dto.OrderDTO;
+import com.micropos.api.dto.OrderItemDTO;
 import com.micropos.api.dto.ProductDTO;
 import com.micropos.products.model.*;
 import com.micropos.products.biz.ProductService;
@@ -65,39 +67,32 @@ public class ProductController {
         return new ResponseEntity<>(modelMapper.map(product, ProductDTO.class), HttpStatus.OK);
     }
 
-//    @PatchMapping("/products/{productId}")
-//    public ResponseEntity<String> patchProduct(@PathVariable String productId, @RequestBody ProductUpdateRequest request) {
-//        System.out.println("in patchProduct");
-//        try {
-//            System.out.println(productId);
-//            System.out.println(request.getQuantity());
-//            productService.updateProduct(productId, request.getQuantity());
-////
-////            //创建订单
-////            // 设置请求头
-////            HttpHeaders headers = new HttpHeaders();
-////            headers.setContentType(MediaType.APPLICATION_JSON);
-////
-////            // 设置请求体
-////            HttpEntity<List<ProductDTO>> requestEntity = new HttpEntity<>(products, headers);
-////            String ret = restTemplate.postForObject("http://localhost:8083/createOrder", )
-//            return ResponseEntity.ok("Data updated!");
-//        } catch (Exception e) {
-//            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Failed to update data: " + e.getMessage());
-//        }
-//    }
-
     @PatchMapping("/products/charge")
     public ResponseEntity<String> charge(@RequestBody ChargeRequest request) {
         System.out.println("in charge!");
         try {
+            double total = 0;
+            OrderDTO orderDTO = new OrderDTO("user0", 0, new ArrayList<>(), "finish");
+
             for (ProductUpdateRequest p : request.getPur()) {
                 System.out.println(p.getProductId() + " " + p.getQuantity());
+                Product product = productService.getProductById(p.getProductId());
+                if (product == null || product.getQuantity() < p.getQuantity()) {//先判断库存是否充足
+                    //库存不足返回400
+                    return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Product not existed or no enough quantity!");
+                }
+
+                total += Double.parseDouble(product.getPrice()) * p.getQuantity();
+                productService.updateProduct(p.getProductId(), product.getQuantity() - p.getQuantity());
+                orderDTO.getItems().add(new OrderItemDTO(p.getProductId(), p.getQuantity(), Double.parseDouble(product.getPrice())));
             }
-            request.getPur().forEach(productUpdateRequest -> productService.updateProduct(productUpdateRequest.getProductId(), productUpdateRequest.getQuantity()));
+            orderDTO.setAmount(total);
+            //创建订单
+            String ret = restTemplate.postForObject("http://webpos-orders/createOrder", orderDTO, String.class);
+            return ResponseEntity.ok("Data updated! orders return : " + ret);
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Failed to update data: " + e.getMessage());
         }
-        return ResponseEntity.ok("Data updated!");
+
     }
 }

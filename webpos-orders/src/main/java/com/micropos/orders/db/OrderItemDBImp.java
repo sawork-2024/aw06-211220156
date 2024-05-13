@@ -18,4 +18,8 @@ public class OrderItemDBImp implements OrderItemDB {
     public List<OrderItem> getOrderItems() {
         return orderItemRepository.findAll();
     }
+    @Override
+    public void createItem(OrderItem orderItem) {
+        orderItemRepository.save(orderItem);
+    }
 }

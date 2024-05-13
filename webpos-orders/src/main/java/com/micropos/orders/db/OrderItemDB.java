@@ -7,4 +7,6 @@ import java.util.List;
 
 public interface OrderItemDB {
     List<OrderItem> getOrderItems();
+
+    void createItem(OrderItem orderItem);
 }

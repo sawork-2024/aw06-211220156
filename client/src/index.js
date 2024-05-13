@@ -509,7 +509,7 @@ $(document).ready(function () {
         }
         var requestData = {pur:[]};
         for (let i = 0; i < cart.length; i++) {
-            requestData.pur.push({ productId: cart[i].id, quantity: cart[i].max_quantity - cart[i].quantity });
+            requestData.pur.push({ productId: cart[i].id, quantity: cart[i].quantity });
         }
         $.ajax({
             url: json_api + 'products/charge',

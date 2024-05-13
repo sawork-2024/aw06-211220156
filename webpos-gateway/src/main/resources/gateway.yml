@@ -55,7 +55,7 @@ spring:
         - id: Orders
           uri: http://localhost:8083
           predicates:
-            - Path=/orders
+            - Path=/orders/**
           metadata:
             cors:
               allowedOrigins: '*'
@@ -69,7 +69,21 @@ spring:
         - id: OrderItems
           uri: http://localhost:8083
           predicates:
-            - Path=/orderItems
+            - Path=/orderItems/**
+          metadata:
+            cors:
+              allowedOrigins: '*'
+              allowedMethods:
+                - GET
+                - POST
+                - PATCH
+                - OPTIONS
+              allowedHeaders: '*'
+              maxAge: 30
+        - id: creteOrder
+          uri: http://localhost:8083
+          predicates:
+            - Path=/createOrder
           metadata:
             cors:
               allowedOrigins: '*'

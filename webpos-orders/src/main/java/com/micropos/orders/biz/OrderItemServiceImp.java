@@ -18,4 +18,8 @@ public class OrderItemServiceImp implements OrderItemService {
     public List<OrderItem> orderItems() {
         return orderItemDB.getOrderItems();
     }
+    @Override
+    public void createItem(OrderItem orderItem) {
+        orderItemDB.createItem(orderItem);
+    }
 }

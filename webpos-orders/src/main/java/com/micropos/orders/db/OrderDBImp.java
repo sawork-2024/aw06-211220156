@@ -18,7 +18,8 @@ public class OrderDBImp implements OrderDB {
         return orderRepository.findAll();
     }
     @Override
-    public String createOrder() {
+    public String createOrder(Order order) {
+        orderRepository.save(order);
         return "create order succeed!";
     }
 }
