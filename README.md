@@ -46,11 +46,15 @@ order_item表字段：
 
 
 
+
+
 ### webpos-discovery
 
 服务发现模块。用到了`Eureka`这个用于构建和管理分布式系统中的服务注册和发现的工具。在微服务架构中，服务通常会动态地启动、停止和扩展，因此需要一种机制来帮助服务找到彼此并建立通信。
 
 配置在`discovery.yml`文件中。这个`Eureka Server`运行在本机8761号端口上。其他服务模块作为`Eureka Client`都需要到8761号端口进行服务注册。
+
+
 
 
 
@@ -64,18 +68,22 @@ order_item表字段：
 - id: Product
   uri: http://localhost:8082
   predicates:
-	- Path=/products/**
+- Path=/products/**
   metadata:
     cors:
       allowedOrigins: '*'
       allowedMethods:
-        - GET
+		- GET
 		- POST
 		- PATCH
 		- OPTIONS
 	  allowedHeaders: '*'
 	  maxAge: 30
 ```
+
+
+
+
 
 
 
@@ -192,6 +200,10 @@ resilience4j: # 使用resilience4j断路器
 
 
 
+
+
+
+
 ### webpos-orders
 
 运行在8083端口的订单服务，主要作用是被`webpos-products`服务调用，来进行订单创建。`OrderController`维护两个不断自增的id作为`order_`和`order_item`表的主键，工作流程是：从products接收待完善的`OrderDTO`对象、`OrderItemDTO`对象，填入订单时间和对应的主键id，并利用jpa插入MySQL的对应表中。具体代码与`webpos-products`服务类似，不再阐释。
@@ -202,6 +214,8 @@ resilience4j: # 使用resilience4j断路器
 
 ## 水平扩展webpos-products并压力测试
 
+
+
 利用gatling进行压力测试。10秒渐进访问量800：
 
 ```java
@@ -210,9 +224,13 @@ scn.injectOpen(rampUsers(800).during(10))
 
 **单节点的`webpos-products`模块结果如下**：
 
-![image-20240514182109250](C:\Users\Administrator\AppData\Roaming\Typora\typora-user-images\image-20240514182109250.png)
+![](img/4.png)
 
 800个中有1.62%响应时间在800~1200ms,有11.12%响应时间>=1200ms.
+
+
+
+
 
 **接下来利用haproxy进行水平扩展**。`haproxy.cfg`：
 
@@ -234,13 +252,21 @@ backend servers
 
 然后利用docker部署四个节点，分别从8082端口（`webpos-products`默认开启的端口）映射到18081/18082/18083/18084四个端口：
 
+
+
 由于我项目里DTO需要跨模块共享，因此放在了单独的`webpos-api`模块。而`webpos-products`服务依赖于`webpos-api`.要想单独打包`webpos-products`服务必须先将`webpos-api`进行`mvn install`到本地maven仓库。**但是我遇到了jdk层面的bug**：[[JDK-8252883\] AccessDeniedException caused by delayed file deletion on Windows - Java Bug System (openjdk.org)](https://bugs.openjdk.org/browse/JDK-8252883)
 
 为了能水平扩展`webpos-products`模块，只好暂时把DTO移到该模块内部，再打包`webpos-products`模块。
 
+
+
 (期间又遇到了很多问题。。首先是在docker上部署的后端无法通过localhost访问本机上的MySQL服务器：这个改成通过本机真实ip连接后成功；然后是MySQL服务器不允许远程访问，因为docker ip默认是172.17.0.1，MySQL默认只允许root@localhost访问。解决：通过命令修改user表，使得所有ip都能访问：`mysql> update user set host = '%' where user = 'root';`)
 
+
+
 终于完成部署了：![](img/5.png)
+
+
 
 **接下来对haproxy监听的18080端口进行压力测试**：
 
