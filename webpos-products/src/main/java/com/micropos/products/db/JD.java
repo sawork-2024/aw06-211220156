@@ -27,6 +27,7 @@ public class JD implements com.micropos.products.db.ProductDB {
         } catch (IOException e) {
             e.printStackTrace();
         }
+//        throw new RuntimeException("故意的");
         return productRepository.findAll();
     }
 

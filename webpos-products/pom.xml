@@ -70,7 +70,7 @@
             <scope>test</scope>
         </dependency>
         <dependency>
-            <groupId>org.example</groupId>
+            <groupId>com.micropos</groupId>
             <artifactId>webpos-api</artifactId>
             <version>0.0.1</version>
             <scope>compile</scope>

@@ -6,6 +6,7 @@ import com.micropos.api.dto.OrderItemDTO;
 import com.micropos.api.dto.ProductDTO;
 import com.micropos.products.model.*;
 import com.micropos.products.biz.ProductService;
+import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.*;
@@ -68,31 +69,34 @@ public class ProductController {
     }
 
     @PatchMapping("/products/charge")
+    @CircuitBreaker(name = "products-breaker", fallbackMethod = "fail")
     public ResponseEntity<String> charge(@RequestBody ChargeRequest request) {
         System.out.println("in charge!");
-        try {
-            double total = 0;
-            OrderDTO orderDTO = new OrderDTO("user0", 0, new ArrayList<>(), "finish");
+        double total = 0;
+        OrderDTO orderDTO = new OrderDTO("user0", 0, new ArrayList<>(), "finish");
 
-            for (ProductUpdateRequest p : request.getPur()) {
-                System.out.println(p.getProductId() + " " + p.getQuantity());
-                Product product = productService.getProductById(p.getProductId());
-                if (product == null || product.getQuantity() < p.getQuantity()) {//先判断库存是否充足
-                    //库存不足返回400
-                    return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Product not existed or no enough quantity!");
-                }
-
-                total += Double.parseDouble(product.getPrice()) * p.getQuantity();
-                productService.updateProduct(p.getProductId(), product.getQuantity() - p.getQuantity());
-                orderDTO.getItems().add(new OrderItemDTO(p.getProductId(), p.getQuantity(), Double.parseDouble(product.getPrice())));
+        for (ProductUpdateRequest p : request.getPur()) {
+            System.out.println(p.getProductId() + " " + p.getQuantity());
+            Product product = productService.getProductById(p.getProductId());
+            if (product == null || product.getQuantity() < p.getQuantity()) {//先判断库存是否充足
+                //库存不足返回400
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Product not existed or no enough quantity!");
             }
-            orderDTO.setAmount(total);
-            //创建订单
-            String ret = restTemplate.postForObject("http://webpos-orders/createOrder", orderDTO, String.class);
-            return ResponseEntity.ok("Data updated! orders return : " + ret);
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Failed to update data: " + e.getMessage());
-        }
 
+            total += Double.parseDouble(product.getPrice()) * p.getQuantity();
+            orderDTO.getItems().add(new OrderItemDTO(p.getProductId(), p.getQuantity(), Double.parseDouble(product.getPrice())));
+        }
+        orderDTO.setAmount(total);
+        //创建订单
+        String ret = restTemplate.postForObject("http://webpos-orders/createOrder", orderDTO, String.class);
+        //创建订单成功，且没抛出异常，才会修改库存
+        request.getPur().forEach(p -> {
+            productService.updateProduct(p.getProductId(), productService.getProductById(p.getProductId()).getQuantity() - p.getQuantity());
+        });
+        return ResponseEntity.ok("Data updated! orders return : " + ret);
+    }
+    public ResponseEntity<String> fail(ChargeRequest request, Throwable throwable) {
+        System.out.println("Circuit breaker triggered, fallback method called.");
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Failed to update data :" + throwable.getMessage());
     }
 }

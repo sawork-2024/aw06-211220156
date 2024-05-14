@@ -2,9 +2,11 @@ package com.micropos.products.biz;
 
 import com.micropos.products.db.ProductDB;
 import com.micropos.products.model.Product;
+import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Component
@@ -19,8 +21,9 @@ public class ProductServiceImp implements ProductService {
 
 
     @Override
-//    @Cacheable(value = "products")
+    @CircuitBreaker(name = "products-breaker", fallbackMethod = "getDefaultProducts")
     public List<Product> products() {
+        System.out.println("in /products");
         return productDB.getProducts();
     }
 
@@ -41,4 +44,14 @@ public class ProductServiceImp implements ProductService {
         productDB.updateProduct(productId, quantity);
     }
 
+    public List<Product> getDefaultProducts(Throwable throwable) {
+        System.out.println("in get default Products!");
+        List<Product> list = new ArrayList<>();
+        try{
+            Product p = new Product("13284888", "Java从入门到精通（第6版）（软件开发视频大讲堂） Java入门经典 Java从入门到精通（第6版）（软件开发视频大讲堂） Java入门经典", 75.8, "https://img13.360buyimg.com/n1/s200x200_jfs/t1/186038/9/7947/120952/60bdd993E41eea7e2/48ab930455d7381b.jpg");
+            list.add(p);
+            return list;
+        } catch (Exception e){}
+        return list;
+    }
 }
