@@ -34,6 +34,22 @@ order_item表字段：
 
 
 
+## 项目运行
+
+在各个微服务模块下运行下面命令启动服务：
+
+```
+mvn spring-boot:run
+```
+
+client/dist目录中提供了前端，可以通过http-server来跑一个前端界面：
+
+```
+http-server ./client/dist -p 3000
+```
+
+
+
 
 
 ## 服务介绍
